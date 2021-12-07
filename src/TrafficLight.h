@@ -41,7 +41,7 @@ public:
     // constructor / desctructor
     TrafficLight();
     // getters / setters
-    void setCurrentPhase(TrafficLightPhase phase) {_currentPhase = phase ;}
+    void setCurrentPhase(TrafficLightPhase phase) {_currentPhase = phase ;}; //may not be used 
     TrafficLightPhase getCurrentPhase();
     // typical behaviour methods
     void simulate ();
