@@ -1,12 +1,8 @@
 #include <iostream>
-#include <random>
+
 #include "TrafficLight.h"
 
-int myRand()
-{
-    //srand (time(NULL));
-    return rand()%3+4;
-};
+
 
 /* Implementation of class "MessageQueue" */
 template <typename T>
@@ -33,9 +29,16 @@ void MessageQueue<T>::send(T &&msg)
     // as well as _condition.notify_one() to add a new message to the queue and afterwards send a notification.
     std::lock_guard<std::mutex> mylock(_mutex);
 
-    _queue.push_back(std::move(msg));
-
+    //_queue.push_back(std::move(msg)); 
+    // suggested by reviewer
+    _queue.emplace_back(std::move(msg));
     _cond.notify_one();
+}
+
+template <typename T>
+MessageQueue<T>::~MessageQueue()
+{
+    _queue.clear();
 }
 
 
@@ -45,6 +48,14 @@ void MessageQueue<T>::send(T &&msg)
 TrafficLight::TrafficLight()
 {
     _currentPhase = TrafficLightPhase::red;
+}
+
+//suggested by reviever
+TrafficLight::~TrafficLight()
+{
+    _messageQueue.~MessageQueue();
+    _condition.notify_all();
+    _mutex.~mutex();
 }
 
 void TrafficLight::waitForGreen()
@@ -83,13 +94,20 @@ void TrafficLight::cycleThroughPhases()
     // and toggles the current phase of the traffic light between red and green and sends an update method 
     // to the message queue using move semantics. The cycle duration should be a random value between 4 and 6 seconds. 
     // Also, the while-loop should use std::this_thread::sleep_for to wait 1ms between two cycles.
-    srand(time(NULL));
+    //srand(time(NULL));
+    //myRand rnd;
+    std::mt19937 rnd_dev;
+    std::uniform_real_distribution<double> uni_dist(4.0, 6.0);
+    rnd_dev.seed(time(NULL));
+
     while(true)
     {
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));   
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));   
       // int random value between 4-6 sec and wait;
-    
-      std::this_thread::sleep_for(std::chrono::seconds(myRand()));
+      //return rand()%3+4;
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(myRand::myrand()));
+      //std::this_thread::sleep_for(std::chrono::milliseconds(int(1000*uni_dist(rnd_dev))));
       //toggle the light
       if (_currentPhase == TrafficLightPhase::red)
       {
